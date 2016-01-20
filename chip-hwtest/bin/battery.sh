@@ -97,3 +97,24 @@ BAT_ICHG_BIN=$(( $(($BAT_ICHG_MSB << 4)) | $(($(($BAT_ICHG_LSB & 0x0F)) )) ))
 BAT_ICHG=$(echo "($BAT_ICHG_BIN*0.5)"|bc)
 echo "Battery charge current = "$BAT_ICHG"mA"
 
+###################
+#read internal temperature 	5eh, 5fh	-144.7c -> 000h,	0.1c/bit	FFFh -> 264.8c
+TEMP_MSB=$(i2cget -y -f 0 0x34 0x5e)
+TEMP_LSB=$(i2cget -y -f 0 0x34 0x5f)
+
+# bash math -- converts hex to decimal so `bc` won't complain later...
+# MSB is 8 bits, LSB is lower 4 bits
+TEMP_BIN=$(( $(($TEMP_MSB << 4)) | $(($(($TEMP_LSB & 0x0F)) )) ))
+
+TEMP_C=$(echo "($TEMP_BIN*0.1-144.7)"|bc)
+echo "Internal temperature = "$TEMP_C"c"
+
+###################
+#read fuel gauge B9h
+BAT_GAUGE_HEX=$(i2cget -y -f 0 0x34 0xb9)
+
+# bash math -- converts hex to decimal so `bc` won't complain later...
+# MSB is 8 bits, LSB is lower 4 bits
+BAT_GAUGE_DEC=$(($BAT_GAUGE_HEX))
+
+echo "Battery gauge = "$BAT_GAUGE_DEC"%"
